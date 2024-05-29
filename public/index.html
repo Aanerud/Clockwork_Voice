@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceManus til lyd.</title>
+</head>
+<body>
+    <h1>Norske stemmer? Right...</h1>
+    <form id="textForm" action="/synthesize" method="post">
+        <label for="text">Kopier in voice manus. Husk . , og space er viktig!!</label><br>
+        <textarea id="text" name="text" rows="4" cols="50" required></textarea><br>
+        <button type="submit">Generer lyd!</button>
+    </form>
+    <p>Trykk play, når du ser debug og alt er klart!</p>
+    <audio id="audioPlayer" controls></audio>
+    <p>En LLM har analysert teksen, og lager "Digital forståelse" av den (Debug modus):</p>
+    <textarea id="ssmlOutput" rows="10" cols="50" readonly></textarea>
+    
+    <script>
+        document.getElementById('textForm').onsubmit = async function(event) {
+            event.preventDefault(); // Prevent the default form submission
+            const formData = new FormData(event.target);
+            const text = formData.get('text');
+
+            const response = await fetch('/synthesize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: text })
+            });
+
+            if (response.ok) {
+                const result = await response.json(); // Parse JSON response
+                const audioPlayer = document.getElementById('audioPlayer');
+                audioPlayer.src = "/output.wav"; // Set the source of the audio player to the static path
+                audioPlayer.load(); // Reload the audio player
+                audioPlayer.play(); // Play the audio
+                document.getElementById('ssmlOutput').value = result.ssml; // Display SSML text
+            } else {
+                console.error('Failed to generate audio');
+                alert('Failed to generate audio. Please try again.');
+            }
+        };
+    </script>
+</body>
+</html>
